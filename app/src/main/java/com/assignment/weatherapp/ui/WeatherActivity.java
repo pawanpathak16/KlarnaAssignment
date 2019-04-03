@@ -1,5 +1,6 @@
 package com.assignment.weatherapp.ui;
 
+import androidx.core.app.ActivityCompat;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -15,6 +16,7 @@ import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.assignment.weatherapp.GpsTracker;
 import com.assignment.weatherapp.R;
 import com.assignment.weatherapp.models.Weather;
 import com.assignment.weatherapp.data.remote.api.WeatherApiResponse;
@@ -30,14 +32,19 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import dagger.android.AndroidInjection;
 
-public class WeatherActivity extends AppCompatActivity implements LocationListener {
+public class WeatherActivity extends AppCompatActivity  {
 
-
+    int REQUEST_PERMISSIONS=0;
+    int REQUEST_LOCATION =2;
+    private static String[] PERMISSION_LOCATION = {android.Manifest.permission.ACCESS_COARSE_LOCATION,
+            android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_NETWORK_STATE};
     private LocationManager locationManager;
     private String provider;
+    GpsTracker mGPS;
 
     Double latitude;
     Double longitude;
+    String cordinates;
 
     @Inject
     ViewModelFactory viewModelFactory;
@@ -90,29 +97,17 @@ public class WeatherActivity extends AppCompatActivity implements LocationListen
         setContentView(R.layout.layout_weather);
         ButterKnife.bind(this);
 
-        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        Criteria criteria = new Criteria();
-        provider = locationManager.getBestProvider(criteria, false);
-        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    Activity#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for Activity#requestPermissions for more details.
-            return;
-        }
-        Location location = locationManager.getLastKnownLocation(provider);
 
-        // Initialize the location fields
-        if (location != null) {
-            System.out.println("Provider " + provider + " has been selected.");
-            onLocationChanged(location);
-        } else {
-            Toast.makeText(getApplicationContext(), "Location not available", Toast.LENGTH_LONG).show();
+        mGPS = new GpsTracker(this);
+        Location location=mGPS.getLocation();
+        if(location!=null)
+        {
+            cordinates=location.getLatitude()+","+location.getLongitude();
         }
-
+        else{
+            cordinates="59.337239,18.062381";
+        }
+        //System.out.println("location---->"+location.getLongitude()+"---"+location.getLatitude());
 
         viewModel = ViewModelProviders.of(this, viewModelFactory).get(WeatherviewModel.class);
         viewModel = ViewModelProviders.of(this, viewModelFactory).get(WeatherviewModel.class);
@@ -125,18 +120,7 @@ public class WeatherActivity extends AppCompatActivity implements LocationListen
     @Override
     protected void onResume() {
         super.onResume();
-        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    Activity#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for Activity#requestPermissions for more details.
-            return;
-        }
-        locationManager.requestLocationUpdates(provider, 400, 1, this);
-       String cordinates=latitude+","+longitude;
+
         viewModel.getWeather(cordinates);
     }
 
@@ -310,31 +294,36 @@ public class WeatherActivity extends AppCompatActivity implements LocationListen
 
     }
 
-    @Override
-    public void onLocationChanged(Location location)
+
+    private void checkFineLoactionPermission()
     {
-        longitude=location.getLongitude();
-        latitude=location.getLongitude();
+        if (ActivityCompat.checkSelfPermission(WeatherActivity.this, android.Manifest.permission.ACCESS_COARSE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED
+                || ActivityCompat.checkSelfPermission(WeatherActivity.this, android.Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(WeatherActivity.this, android.Manifest.permission.ACCESS_NETWORK_STATE)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    android.Manifest.permission.ACCESS_COARSE_LOCATION)
+                    || ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    android.Manifest.permission.ACCESS_FINE_LOCATION)
+                    || ActivityCompat.shouldShowRequestPermissionRationale(this, android.Manifest.permission.ACCESS_NETWORK_STATE)) {
+
+
+                ActivityCompat.requestPermissions(WeatherActivity.this,
+                        PERMISSION_LOCATION,
+                        REQUEST_LOCATION);
+
+
+            } else {
+                ActivityCompat.requestPermissions(WeatherActivity.this,
+                        PERMISSION_LOCATION,
+                        REQUEST_LOCATION);
+            }
+
+
+        }
     }
 
-    @Override
-    public void onStatusChanged(String s, int i, Bundle bundle) {
 
-    }
-
-    @Override
-    public void onProviderEnabled(String s)
-    {
-        Toast.makeText(this, "Enabled new provider " + provider,
-                Toast.LENGTH_SHORT).show();
-
-    }
-
-    @Override
-    public void onProviderDisabled(String s)
-    {
-        Toast.makeText(this, "Disabled provider " + provider,
-                Toast.LENGTH_SHORT).show();
-
-    }
 }
