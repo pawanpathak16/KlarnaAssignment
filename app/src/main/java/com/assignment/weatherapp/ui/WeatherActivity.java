@@ -97,6 +97,7 @@ public class WeatherActivity extends AppCompatActivity  {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_weather);
         ButterKnife.bind(this);
+        checkFineLoactionPermission();
 
 
         mGPS = new GpsTracker(this);
