@@ -4,7 +4,7 @@ public class Weather
 {
     Double latitude;
     Double longitude;
-    String timeZone;
+    String timezone;
     CurrentWeather currently;
 
     public CurrentWeather getCurrently() {
@@ -36,11 +36,11 @@ public class Weather
     }
 
     public String getTimeZone() {
-        return timeZone;
+        return timezone;
     }
 
     public void setTimeZone(String timeZone) {
-        this.timeZone = timeZone;
+        this.timezone = timeZone;
     }
 
 

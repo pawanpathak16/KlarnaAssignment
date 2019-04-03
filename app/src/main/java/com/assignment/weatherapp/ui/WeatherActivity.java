@@ -21,6 +21,7 @@ import com.assignment.weatherapp.R;
 import com.assignment.weatherapp.models.Weather;
 import com.assignment.weatherapp.data.remote.api.WeatherApiResponse;
 import com.assignment.weatherapp.factory.ViewModelFactory;
+import com.assignment.weatherapp.utils.Utility;
 import com.assignment.weatherapp.viewmode.WeatherviewModel;
 import com.google.gson.Gson;
 
@@ -120,8 +121,12 @@ public class WeatherActivity extends AppCompatActivity  {
     @Override
     protected void onResume() {
         super.onResume();
-
-        viewModel.getWeather(cordinates);
+        if(Utility.isNetworkAvailable(WeatherActivity.this)) {
+            viewModel.getWeather(cordinates);
+        }
+        else{
+            Toast.makeText(getApplicationContext(),"Please check Your Internet Connection",Toast.LENGTH_LONG).show();
+        }
     }
 
     private void consumeResponse(WeatherApiResponse apiResponse) {
